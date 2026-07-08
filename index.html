@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Crew — Multi-Agent Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --bg: #FDFCF9; --bg-warm: #F7F3ED; --bg-card: #FFFFFF;
+            --text-primary: #1C1917; --text-secondary: #57534E; --text-muted: #A8A29E;
+            --accent: #0D9488; --accent-light: #CCFBF1; --accent-soft: #F0FDFA; --accent-warm: #14B8A6;
+            --accent-orange: #F97316; --accent-orange-soft: #FFF7ED;
+            --accent-rose: #E11D48; --accent-rose-soft: #FFF1F2;
+            --accent-amber: #D97706; --accent-amber-soft: #FFFBEB;
+            --accent-indigo: #4F46E5; --accent-indigo-soft: #EEF2FF;
+            --border: #E7E5E4; --border-light: #F5F5F4;
+            --shadow: 0 4px 20px -4px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 50px -12px rgba(0,0,0,0.12);
+            --radius: 14px; --radius-lg: 20px; --radius-xl: 28px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg); color: var(--text-primary); line-height: 1.6; overflow-x: hidden;
+        }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        @keyframes floatSlow { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-20px) rotate(3deg)} }
+        @keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 0 rgba(13,148,136,0.3)} 50%{box-shadow:0 0 0 16px rgba(13,148,136,0)} }
+        @keyframes slideUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes scaleIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+        @keyframes orbit { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        @keyframes confetti-fall { 0%{transform:translateY(-100vh) rotate(0);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+        @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .animate-up { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; opacity: 0; }
+        .animate-up-delay-1 { animation-delay: 0.1s; }
+        .animate-up-delay-2 { animation-delay: 0.2s; }
+        .animate-up-delay-3 { animation-delay: 0.3s; }
+        .animate-up-delay-4 { animation-delay: 0.4s; }
+        .animate-up-delay-5 { animation-delay: 0.5s; }
+
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(253,252,249,0.82); backdrop-filter: blur(20px) saturate(1.8); border-bottom: 1px solid rgba(231,229,228,0.5); transition: all 0.3s ease; }
+        .navbar.scrolled { padding: 12px 40px; box-shadow: var(--shadow); }
+        .nav-logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.15rem; color: var(--text-primary); text-decoration: none; }
+        .nav-logo-icon { width: 38px; height: 38px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a { text-decoration: none; color: var(--text-secondary); font-weight: 500; font-size: 0.92rem; position: relative; transition: color 0.2s; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; }
+        .nav-links a:hover { color: var(--text-primary); }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-cta { padding: 10px 24px; background: var(--accent); color: white; border: none; border-radius: 100px; font-family: inherit; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; }
+        .nav-cta:hover { background: var(--accent-warm); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(13,148,136,0.3); }
+
+        .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 140px 40px 80px; position: relative; overflow: hidden; }
+        .hero-bg-pattern { position: absolute; inset: 0; background-image: radial-gradient(circle at 20% 50%, rgba(13,148,136,0.06) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(249,115,22,0.05) 0%, transparent 40%), radial-gradient(circle at 60% 80%, rgba(79,70,229,0.04) 0%, transparent 40%); pointer-events: none; }
+        .hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(13,148,136,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(13,148,136,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; }
+        .hero-content { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1; }
+        .hero-left { padding-right: 20px; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: var(--accent-soft); border: 1px solid var(--accent-light); border-radius: 100px; font-size: 0.82rem; font-weight: 600; color: var(--accent); margin-bottom: 28px; }
+        .hero-badge .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse-glow 2s infinite; }
+        .hero-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 4rem; line-height: 1.1; color: var(--text-primary); margin-bottom: 24px; letter-spacing: -0.02em; }
+        .hero-title .highlight { color: var(--accent); }
+        .hero-subtitle { font-size: 1.15rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 40px; max-width: 480px; }
+        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+        .btn-primary { padding: 16px 36px; background: var(--accent); color: white; border: none; border-radius: 100px; font-family: inherit; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+        .btn-primary:hover { background: var(--accent-warm); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(13,148,136,0.3); }
+        .btn-secondary { padding: 16px 36px; background: white; color: var(--text-primary); border: 1.5px solid var(--border); border-radius: 100px; font-family: inherit; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+
+        .hero-visual { position: relative; height: 520px; }
+        .agent-orbit { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .agent-center { width: 140px; height: 140px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; box-shadow: 0 20px 60px rgba(13,148,136,0.35); position: relative; z-index: 10; animation: floatSlow 6s ease-in-out infinite; }
+        .agent-center::before { content: ''; position: absolute; inset: -8px; border: 2px dashed var(--accent-light); border-radius: 50%; animation: orbit 20s linear infinite; }
+        .agent-node { position: absolute; width: 80px; height: 80px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 1.4rem; box-shadow: var(--shadow); animation: float 4s ease-in-out infinite; transition: all 0.3s ease; cursor: pointer; }
+        .agent-node:hover { transform: scale(1.15) !important; z-index: 20; }
+        .agent-node .label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .agent-node.n1 { background: var(--accent-orange-soft); color: var(--accent-orange); top: 10%; left: 50%; transform: translateX(-50%); animation-delay: 0s; }
+        .agent-node.n2 { background: var(--accent-rose-soft); color: var(--accent-rose); top: 30%; right: 5%; animation-delay: 0.5s; }
+        .agent-node.n3 { background: var(--accent-amber-soft); color: var(--accent-amber); bottom: 30%; right: 5%; animation-delay: 1s; }
+        .agent-node.n4 { background: var(--accent-indigo-soft); color: var(--accent-indigo); bottom: 10%; left: 50%; transform: translateX(-50%); animation-delay: 1.5s; }
+        .agent-node.n5 { background: var(--accent-soft); color: var(--accent); top: 30%; left: 5%; animation-delay: 2s; }
+
+        .marquee-section { padding: 30px 0; background: var(--bg-warm); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); overflow: hidden; }
+        .marquee-track { display: flex; gap: 60px; animation: marquee 30s linear infinite; width: max-content; }
+        .marquee-item { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+
+        .section { padding: 100px 40px; max-width: 1200px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 64px; }
+        .section-tag { display: inline-block; padding: 6px 16px; background: var(--accent-soft); color: var(--accent); border-radius: 100px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+        .section-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 2.8rem; color: var(--text-primary); margin-bottom: 16px; letter-spacing: -0.02em; }
+        .section-desc { font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; line-height: 1.7; }
+
+        .how-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+        .how-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px 24px; text-align: center; position: relative; transition: all 0.4s ease; cursor: pointer; }
+        .how-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); border-color: var(--accent-light); }
+        .how-card .step-num { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; margin: 0 auto 20px; }
+        .how-card:nth-child(1) .step-num { background: var(--accent-soft); color: var(--accent); }
+        .how-card:nth-child(2) .step-num { background: var(--accent-orange-soft); color: var(--accent-orange); }
+        .how-card:nth-child(3) .step-num { background: var(--accent-rose-soft); color: var(--accent-rose); }
+        .how-card:nth-child(4) .step-num { background: var(--accent-amber-soft); color: var(--accent-amber); }
+        .how-card:nth-child(5) .step-num { background: var(--accent-indigo-soft); color: var(--accent-indigo); }
+        .how-card .icon { font-size: 2rem; margin-bottom: 16px; }
+        .how-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); }
+        .how-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+        .how-connector { position: absolute; top: 50%; right: -20px; width: 20px; height: 2px; background: var(--border); z-index: 1; }
+        .how-card:last-child .how-connector { display: none; }
+
+        .agents-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .agent-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px 28px; transition: all 0.4s ease; position: relative; overflow: hidden; }
+        .agent-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 4px 4px 0 0; transition: height 0.3s ease; }
+        .agent-card:hover::before { height: 6px; }
+        .agent-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .agent-card:nth-child(1)::before { background: var(--accent-orange); }
+        .agent-card:nth-child(2)::before { background: var(--accent-rose); }
+        .agent-card:nth-child(3)::before { background: var(--accent-amber); }
+        .agent-card:nth-child(4)::before { background: var(--accent-indigo); }
+        .agent-card:nth-child(5)::before { background: var(--accent); }
+        .agent-card .agent-avatar { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 20px; }
+        .agent-card:nth-child(1) .agent-avatar { background: var(--accent-orange-soft); }
+        .agent-card:nth-child(2) .agent-avatar { background: var(--accent-rose-soft); }
+        .agent-card:nth-child(3) .agent-avatar { background: var(--accent-amber-soft); }
+        .agent-card:nth-child(4) .agent-avatar { background: var(--accent-indigo-soft); }
+        .agent-card:nth-child(5) .agent-avatar { background: var(--accent-soft); }
+        .agent-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+        .agent-card .role-tag { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; margin-bottom: 16px; }
+        .agent-card:nth-child(1) .role-tag { background: var(--accent-orange-soft); color: var(--accent-orange); }
+        .agent-card:nth-child(2) .role-tag { background: var(--accent-rose-soft); color: var(--accent-rose); }
+        .agent-card:nth-child(3) .role-tag { background: var(--accent-amber-soft); color: var(--accent-amber); }
+        .agent-card:nth-child(4) .role-tag { background: var(--accent-indigo-soft); color: var(--accent-indigo); }
+        .agent-card:nth-child(5) .role-tag { background: var(--accent-soft); color: var(--accent); }
+        .agent-card p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7; }
+        .agent-card .output-label { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .benefits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .benefit-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; text-align: center; transition: all 0.3s ease; }
+        .benefit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--accent-light); }
+        .benefit-card .icon-circle { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 20px; }
+        .benefit-card:nth-child(1) .icon-circle { background: var(--accent-soft); }
+        .benefit-card:nth-child(2) .icon-circle { background: var(--accent-orange-soft); }
+        .benefit-card:nth-child(3) .icon-circle { background: var(--accent-rose-soft); }
+        .benefit-card:nth-child(4) .icon-circle { background: var(--accent-amber-soft); }
+        .benefit-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+        .benefit-card p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
+
+        .demo-section { background: var(--bg-warm); padding: 100px 40px; position: relative; overflow: hidden; }
+        .demo-section::before { content: ''; position: absolute; top: -50%; left: -20%; width: 60%; height: 200%; background: radial-gradient(ellipse, rgba(13,148,136,0.04) 0%, transparent 70%); pointer-events: none; }
+        .demo-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+        .demo-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 48px; box-shadow: var(--shadow-lg); }
+        .demo-card .input-group { margin-bottom: 24px; }
+        .demo-card label { display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 10px; }
+        .demo-card textarea { width: 100%; min-height: 140px; padding: 18px 20px; border: 2px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 1rem; color: var(--text-primary); background: var(--bg); resize: vertical; transition: all 0.3s ease; line-height: 1.6; }
+        .demo-card textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(13,148,136,0.1); }
+        .demo-card textarea::placeholder { color: var(--text-muted); }
+        .demo-card .char-count { text-align: right; font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; }
+        .demo-card .generate-btn { width: 100%; padding: 18px 32px; background: var(--accent); color: white; border: none; border-radius: var(--radius); font-family: inherit; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .demo-card .generate-btn:hover:not(:disabled) { background: var(--accent-warm); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(13,148,136,0.3); }
+        .demo-card .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .demo-card .generate-btn .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+        .demo-card .generate-btn.loading .spinner { display: block; }
+        .demo-card .generate-btn.loading .btn-text { display: none; }
+
+        .result-area { margin-top: 32px; display: none; }
+        .result-area.show { display: block; animation: scaleIn 0.5s ease; }
+        .result-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid var(--border-light); padding-bottom: 12px; }
+        .result-tab { padding: 8px 18px; border: none; background: transparent; font-family: inherit; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; border-radius: 100px; transition: all 0.2s; }
+        .result-tab:hover { background: var(--border-light); color: var(--text-secondary); }
+        .result-tab.active { background: var(--accent-soft); color: var(--accent); }
+        .result-content { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; max-height: 600px; overflow-y: auto; font-size: 0.92rem; line-height: 1.8; }
+        .result-content h2 { font-size: 1.3rem; margin: 24px 0 12px; color: var(--text-primary); border-bottom: 2px solid var(--accent-light); padding-bottom: 8px; }
+        .result-content h3 { font-size: 1.1rem; margin: 20px 0 10px; color: var(--accent); }
+        .result-content ul, .result-content ol { margin: 12px 0; padding-left: 24px; }
+        .result-content li { margin: 6px 0; }
+        .result-content strong { color: var(--text-primary); }
+        .result-content blockquote { border-left: 3px solid var(--accent); padding-left: 16px; margin: 16px 0; color: var(--text-secondary); font-style: italic; }
+        .result-content code { background: var(--border-light); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+        .result-content pre { background: #1C1917; color: #F5F5F4; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+        .result-content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.88rem; }
+        .result-content th { background: var(--accent-soft); color: var(--accent); font-weight: 700; text-align: left; padding: 12px; border-bottom: 2px solid var(--accent-light); }
+        .result-content td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); }
+        .result-content tr:hover td { background: var(--bg-warm); }
+
+        .error-msg { background: var(--accent-rose-soft); color: var(--accent-rose); padding: 16px 20px; border-radius: var(--radius); font-weight: 500; margin-top: 16px; display: none; }
+        .error-msg.show { display: block; animation: slideUp 0.3s ease; }
+
+        .progress-steps { display: flex; justify-content: space-between; margin-bottom: 28px; padding: 0 10px; }
+        .progress-step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; position: relative; }
+        .progress-step::after { content: ''; position: absolute; top: 16px; left: 50%; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+        .progress-step:last-child::after { display: none; }
+        .progress-step .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--border-light); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); position: relative; z-index: 1; transition: all 0.4s ease; }
+        .progress-step.active .dot { background: var(--accent); border-color: var(--accent); color: white; animation: pulse-glow 2s infinite; }
+        .progress-step.done .dot { background: var(--accent); border-color: var(--accent); color: white; }
+        .progress-step .label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-align: center; }
+        .progress-step.active .label { color: var(--accent); }
+
+        .features-section { background: var(--bg-card); }
+        .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .feature-row { display: flex; gap: 24px; align-items: flex-start; padding: 32px; border: 1px solid var(--border); border-radius: var(--radius-lg); transition: all 0.3s ease; }
+        .feature-row:hover { border-color: var(--accent-light); box-shadow: var(--shadow); transform: translateY(-3px); }
+        .feature-row .icon-box { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+        .feature-row:nth-child(1) .icon-box { background: var(--accent-soft); }
+        .feature-row:nth-child(2) .icon-box { background: var(--accent-orange-soft); }
+        .feature-row:nth-child(3) .icon-box { background: var(--accent-rose-soft); }
+        .feature-row:nth-child(4) .icon-box { background: var(--accent-amber-soft); }
+        .feature-row:nth-child(5) .icon-box { background: var(--accent-indigo-soft); }
+        .feature-row:nth-child(6) .icon-box { background: var(--accent-soft); }
+        .feature-row h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+        .feature-row p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; }
+
+        .stats-section { background: var(--accent); color: white; padding: 80px 40px; position: relative; overflow: hidden; }
+        .stats-section::before { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); pointer-events: none; }
+        .stats-grid { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center; position: relative; z-index: 1; }
+        .stat-item .number { font-family: 'DM Serif Display', Georgia, serif; font-size: 3.5rem; line-height: 1; margin-bottom: 8px; }
+        .stat-item .label { font-size: 0.9rem; opacity: 0.8; font-weight: 500; }
+
+        .testimonial-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 48px; max-width: 800px; margin: 0 auto; text-align: center; position: relative; }
+        .testimonial-card .quote-mark { font-family: 'DM Serif Display', Georgia, serif; font-size: 5rem; color: var(--accent-light); line-height: 0.5; margin-bottom: 16px; }
+        .testimonial-card blockquote { font-size: 1.25rem; font-style: italic; color: var(--text-primary); line-height: 1.7; margin-bottom: 28px; }
+        .testimonial-card .author { font-weight: 700; color: var(--text-primary); }
+        .testimonial-card .title { font-size: 0.85rem; color: var(--text-muted); }
+
+        .footer { background: #1C1917; color: #A8A29E; padding: 60px 40px 30px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .footer-brand { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.5rem; color: white; margin-bottom: 12px; }
+        .footer-desc { font-size: 0.9rem; line-height: 1.7; max-width: 300px; }
+        .footer h4 { color: white; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 10px; }
+        .footer-links a { color: #A8A29E; text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
+        .footer-links a:hover { color: white; }
+        .footer-bottom { border-top: 1px solid #333; padding-top: 24px; text-align: center; font-size: 0.82rem; }
+
+        .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+        .confetti-piece { position: absolute; width: 10px; height: 10px; top: -10px; animation: confetti-fall 3s ease-out forwards; }
+
+        .scroll-top { position: fixed; bottom: 30px; right: 30px; width: 48px; height: 48px; background: var(--accent); color: white; border: none; border-radius: 50%; font-size: 1.2rem; cursor: pointer; box-shadow: var(--shadow); opacity: 0; transform: translateY(20px); transition: all 0.3s ease; z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .scroll-top.show { opacity: 1; transform: translateY(0); }
+        .scroll-top:hover { background: var(--accent-warm); transform: translateY(-3px); }
+
+        @media (max-width: 1024px) {
+            .hero-content { grid-template-columns: 1fr; text-align: center; }
+            .hero-left { padding-right: 0; }
+            .hero-title { font-size: 3rem; }
+            .hero-subtitle { margin: 0 auto 40px; }
+            .hero-visual { display: none; }
+            .how-grid { grid-template-columns: repeat(3, 1fr); }
+            .agents-grid { grid-template-columns: repeat(2, 1fr); }
+            .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+            .features-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-inner { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px) {
+            .navbar { padding: 12px 20px; }
+            .nav-links { display: none; }
+            .hero { padding: 120px 20px 60px; }
+            .hero-title { font-size: 2.2rem; }
+            .section { padding: 60px 20px; }
+            .section-title { font-size: 2rem; }
+            .how-grid { grid-template-columns: 1fr; }
+            .agents-grid { grid-template-columns: 1fr; }
+            .benefits-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+            .demo-card { padding: 28px 20px; }
+            .footer-inner { grid-template-columns: 1fr; }
+            .progress-steps { display: none; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+    <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">&#9889;</div>
+        <span>AI Research Crew</span>
+    </a>
+    <ul class="nav-links">
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#agents">Agents</a></li>
+        <li><a href="#benefits">Benefits</a></li>
+        <li><a href="#demo">Try It</a></li>
+        <li><a href="#features">Features</a></li>
+    </ul>
+    <button class="nav-cta" onclick="scrollToDemo()">Launch Research</button>
+</nav>
+
+<section class="hero">
+    <div class="hero-bg-pattern"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+        <div class="hero-left">
+            <div class="hero-badge animate-up">
+                <span class="dot"></span>
+                Powered by 5 Specialized AI Agents
+            </div>
+            <h1 class="hero-title animate-up animate-up-delay-1">
+                Turn Any Product Idea Into a<br>
+                <span class="highlight">Complete Business Plan</span>
+            </h1>
+            <p class="hero-subtitle animate-up animate-up-delay-2">
+                Our Multi-Agent Research Crew analyzes markets, competitors, customers, and strategy — then delivers a brutally honest Go/No-Go verdict with financial projections. All in minutes, not months.
+            </p>
+            <div class="hero-buttons animate-up animate-up-delay-3">
+                <button class="btn-primary" onclick="scrollToDemo()">
+                    Start Your Research
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+                <button class="btn-secondary" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">
+                    See How It Works
+                </button>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="agent-orbit">
+                <div class="agent-center">&#129504;</div>
+                <div class="agent-node n1">
+                    &#128202;<span class="label">Market</span>
+                </div>
+                <div class="agent-node n2">
+                    &#127919;<span class="label">Compete</span>
+                </div>
+                <div class="agent-node n3">
+                    &#128101;<span class="label">Customer</span>
+                </div>
+                <div class="agent-node n4">
+                    &#128640;<span class="label">Strategy</span>
+                </div>
+                <div class="agent-node n5">
+                    &#128188;<span class="label">Business</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="marquee-section">
+    <div class="marquee-track">
+        <div class="marquee-item"><span>&#128202; Market Research</span></div>
+        <div class="marquee-item"><span>&#127919; Competitive Intelligence</span></div>
+        <div class="marquee-item"><span>&#128101; Customer Insights</span></div>
+        <div class="marquee-item"><span>&#128640; Product Strategy</span></div>
+        <div class="marquee-item"><span>&#128188; Business Analysis</span></div>
+        <div class="marquee-item"><span>&#128200; Revenue Projections</span></div>
+        <div class="marquee-item"><span>&#9889; Real-Time Reports</span></div>
+        <div class="marquee-item"><span>&#128269; Go/No-Go Verdict</span></div>
+        <div class="marquee-item"><span>&#128202; Market Research</span></div>
+        <div class="marquee-item"><span>&#127919; Competitive Intelligence</span></div>
+        <div class="marquee-item"><span>&#128101; Customer Insights</span></div>
+        <div class="marquee-item"><span>&#128640; Product Strategy</span></div>
+        <div class="marquee-item"><span>&#128188; Business Analysis</span></div>
+        <div class="marquee-item"><span>&#128200; Revenue Projections</span></div>
+        <div class="marquee-item"><span>&#9889; Real-Time Reports</span></div>
+        <div class="marquee-item"><span>&#128269; Go/No-Go Verdict</span></div>
+    </div>
+</div>
+
+<section class="section" id="how-it-works">
+    <div class="section-header">
+        <span class="section-tag">Pipeline</span>
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-desc">Five specialized AI agents work sequentially, each building on the insights of the previous. The result is a comprehensive, data-driven business report.</p>
+    </div>
+    <div class="how-grid">
+        <div class="how-card animate-up">
+            <div class="step-num">1</div>
+            <div class="icon">&#128161;</div>
+            <h3>Share Your Idea</h3>
+            <p>Describe your product concept in plain English. No forms, no templates — just type and go.</p>
+            <div class="how-connector"></div>
+        </div>
+        <div class="how-card animate-up animate-up-delay-1">
+            <div class="step-num">2</div>
+            <div class="icon">&#129302;</div>
+            <h3>Agents Activate</h3>
+            <p>Five specialized AI researchers spin up in sequence, each with a unique role and deep expertise.</p>
+            <div class="how-connector"></div>
+        </div>
+        <div class="how-card animate-up animate-up-delay-2">
+            <div class="step-num">3</div>
+            <div class="icon">&#128269;</div>
+            <h3>Deep Analysis</h3>
+            <p>Each agent conducts its own research — market sizing, competitor mapping, persona building, and more.</p>
+            <div class="how-connector"></div>
+        </div>
+        <div class="how-card animate-up animate-up-delay-3">
+            <div class="step-num">4</div>
+            <div class="icon">&#128203;</div>
+            <h3>Synthesize</h3>
+            <p>Insights from all agents are woven into a coherent strategy with financial projections and a roadmap.</p>
+            <div class="how-connector"></div>
+        </div>
+        <div class="how-card animate-up animate-up-delay-4">
+            <div class="step-num">5</div>
+            <div class="icon">&#9989;</div>
+            <h3>Get Your Verdict</h3>
+            <p>Receive a clear Go/No-Go recommendation with confidence level, risks, and next steps.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="agents" style="background: var(--bg-warm); margin: 0; max-width: 100%; padding: 100px 40px;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div class="section-header">
+            <span class="section-tag">The Crew</span>
+            <h2 class="section-title">Meet Your Research Team</h2>
+            <p class="section-desc">Each agent is a domain expert with 15+ years of simulated experience. They collaborate like a real consulting team — but work in minutes, not months.</p>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card animate-up">
+                <div class="agent-avatar">&#128202;</div>
+                <h3>Market Research Specialist</h3>
+                <span class="role-tag">Senior Analyst</span>
+                <p>Estimates TAM, SAM, and SOM with real numbers. Identifies growth trends, regulatory hurdles, and market timing using Porter's Five Forces framework.</p>
+                <div class="output-label">Output: Market Research Report</div>
+            </div>
+            <div class="agent-card animate-up animate-up-delay-1">
+                <div class="agent-avatar">&#127919;</div>
+                <h3>Competitive Intelligence Analyst</h3>
+                <span class="role-tag">Strategist</span>
+                <p>Maps 4-6 direct competitors with pricing, strengths, weaknesses, and funding data. Identifies market gaps and assesses competitive moats.</p>
+                <div class="output-label">Output: Competitive Matrix</div>
+            </div>
+            <div class="agent-card animate-up animate-up-delay-2">
+                <div class="agent-avatar">&#128101;</div>
+                <h3>Customer Insights Researcher</h3>
+                <span class="role-tag">User Research Lead</span>
+                <p>Builds 3 detailed user personas with demographics, pain points, willingness to pay, and buying journeys. Ranks segments by attractiveness.</p>
+                <div class="output-label">Output: Customer Personas</div>
+            </div>
+            <div class="agent-card animate-up animate-up-delay-3">
+                <div class="agent-avatar">&#128640;</div>
+                <h3>Product Strategy Advisor</h3>
+                <span class="role-tag">Product Strategist</span>
+                <p>Defines MVP features via MoSCoW prioritization, pricing models, 3-phase roadmap, and go-to-market channels tied to real customer pain points.</p>
+                <div class="output-label">Output: Product Strategy Doc</div>
+            </div>
+            <div class="agent-card animate-up animate-up-delay-4">
+                <div class="agent-avatar">&#128188;</div>
+                <h3>Business Strategy Analyst</h3>
+                <span class="role-tag">Financial Advisor</span>
+                <p>Delivers the final verdict: Go, Conditional Go, or No-Go. Includes 3-year revenue projections, unit economics, and top 5 risks with mitigations.</p>
+                <div class="output-label">Output: Business Verdict</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="benefits">
+    <div class="section-header">
+        <span class="section-tag">Why Us</span>
+        <h2 class="section-title">Why Founders Love This</h2>
+        <p class="section-desc">Stop guessing. Start building with confidence backed by real research and honest analysis.</p>
+    </div>
+    <div class="benefits-grid">
+        <div class="benefit-card animate-up">
+            <div class="icon-circle">&#9889;</div>
+            <h3>Speed to Insight</h3>
+            <p>What takes a consulting team weeks, our crew delivers in minutes. Get your full business report while your coffee is still hot.</p>
+        </div>
+        <div class="benefit-card animate-up animate-up-delay-1">
+            <div class="icon-circle">&#127919;</div>
+            <h3>Brutal Honesty</h3>
+            <p>Our Business Analyst does not sugarcoat bad ideas. If it is a No-Go, you will know exactly why — saving you months of wasted effort.</p>
+        </div>
+        <div class="benefit-card animate-up animate-up-delay-2">
+            <div class="icon-circle">&#128202;</div>
+            <h3>Data-Driven</h3>
+            <p>Every claim is backed by numbers — TAM/SAM/SOM estimates, competitor pricing, CAC/LTV ratios, and 3-year revenue projections.</p>
+        </div>
+        <div class="benefit-card animate-up animate-up-delay-3">
+            <div class="icon-circle">&#128274;</div>
+            <h3>Private & Secure</h3>
+            <p>Your ideas never leave your infrastructure. Powered by local Ollama models with optional Tavily web search — fully under your control.</p>
+        </div>
+    </div>
+</section>
+
+<section class="demo-section" id="demo">
+    <div class="demo-inner">
+        <div class="section-header">
+            <span class="section-tag">Live Demo</span>
+            <h2 class="section-title" style="color: var(--text-primary);">Try It Yourself</h2>
+            <p class="section-desc">Enter your product idea below and watch 5 AI agents research, analyze, and deliver a complete business report.</p>
+        </div>
+        <div class="demo-card">
+            <div class="progress-steps" id="progressSteps">
+                <div class="progress-step" data-step="0">
+                    <div class="dot">1</div>
+                    <span class="label">Market</span>
+                </div>
+                <div class="progress-step" data-step="1">
+                    <div class="dot">2</div>
+                    <span class="label">Competition</span>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="dot">3</div>
+                    <span class="label">Customers</span>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="dot">4</div>
+                    <span class="label">Strategy</span>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="dot">5</div>
+                    <span class="label">Business</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="productIdea">Describe your product idea</label>
+                <textarea id="productIdea" placeholder="e.g., An AI-powered resume builder that helps fresh graduates create ATS-optimized resumes with personalized cover letters and interview prep coaching..." maxlength="1000"></textarea>
+                <div class="char-count"><span id="charCount">0</span> / 1000</div>
+            </div>
+            <button class="generate-btn" id="generateBtn" onclick="generateReport()">
+                <span class="spinner"></span>
+                <span class="btn-text">&#128640; Generate Full Business Report</span>
+            </button>
+            <div class="error-msg" id="errorMsg"></div>
+
+            <div class="result-area" id="resultArea">
+                <div class="result-tabs" id="resultTabs">
+                    <button class="result-tab active" data-tab="final">&#128203; Final Report</button>
+                    <button class="result-tab" data-tab="market">&#128202; Market</button>
+                    <button class="result-tab" data-tab="competitive">&#127919; Competition</button>
+                    <button class="result-tab" data-tab="customer">&#128101; Customers</button>
+                    <button class="result-tab" data-tab="strategy">&#128640; Strategy</button>
+                    <button class="result-tab" data-tab="business">&#128188; Business</button>
+                </div>
+                <div class="result-content" id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="number">5</div>
+            <div class="label">Specialized Agents</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">5</div>
+            <div class="label">Research Phases</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">~15</div>
+            <div class="label">Minutes Average</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">1</div>
+            <div class="label">Honest Verdict</div>
+        </div>
+    </div>
+</section>
+
+<section class="section features-section" id="features">
+    <div class="section-header">
+        <span class="section-tag">Capabilities</span>
+        <h2 class="section-title">What You Get</h2>
+        <p class="section-desc">Every report is packed with actionable intelligence you can use to pitch investors, validate ideas, or plan your launch.</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-row animate-up">
+            <div class="icon-box">&#128200;</div>
+            <div>
+                <h3>Market Size Analysis</h3>
+                <p>TAM, SAM, and SOM estimates with growth rates and calculation assumptions. Know exactly how big your opportunity is before you spend a dollar.</p>
+            </div>
+        </div>
+        <div class="feature-row animate-up animate-up-delay-1">
+            <div class="icon-box">&#127970;</div>
+            <div>
+                <h3>Competitor Deep-Dive</h3>
+                <p>Structured comparison tables with 4-6 direct competitors showing pricing, features, strengths, weaknesses, and funding status.</p>
+            </div>
+        </div>
+        <div class="feature-row animate-up animate-up-delay-2">
+            <div class="icon-box">&#127917;</div>
+            <div>
+                <h3>Detailed User Personas</h3>
+                <p>Three fully fleshed-out personas with demographics, job titles, pain points, current tools, willingness to pay, and discovery channels.</p>
+            </div>
+        </div>
+        <div class="feature-row animate-up animate-up-delay-3">
+            <div class="icon-box">&#128506;&#65039;</div>
+            <div>
+                <h3>3-Phase Product Roadmap</h3>
+                <p>MoSCoW-prioritized MVP features, differentiation strategy, pricing model, and a concrete 18-month roadmap with KPI targets.</p>
+            </div>
+        </div>
+        <div class="feature-row animate-up animate-up-delay-4">
+            <div class="icon-box">&#128176;</div>
+            <div>
+                <h3>Financial Projections</h3>
+                <p>3-year revenue forecasts, cost structure breakdown, estimated CAC and LTV, payback period, and break-even timeline.</p>
+            </div>
+        </div>
+        <div class="feature-row animate-up animate-up-delay-5">
+            <div class="icon-box">&#9888;&#65039;</div>
+            <div>
+                <h3>Risk Assessment</h3>
+                <p>Top 5 risks ranked by probability and impact, each with a concrete mitigation strategy. No surprises after you launch.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="section-header">
+        <span class="section-tag">Feedback</span>
+        <h2 class="section-title">What Early Users Say</h2>
+    </div>
+    <div class="testimonial-card animate-up">
+        <div class="quote-mark">&ldquo;</div>
+        <blockquote>
+            I pitched my startup idea to investors with a report generated by this tool. They were blown away by the depth of the competitive analysis and the financial projections. It literally saved me weeks of research.
+        </blockquote>
+        <div class="author">Sarah Chen</div>
+        <div class="title">Founder, TechStart Accelerator</div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div>
+            <div class="footer-brand">AI Research Crew</div>
+            <p class="footer-desc">Multi-agent intelligence for founders who want real research, not guesswork. Built with CrewAI, Ollama, and FastAPI.</p>
+        </div>
+        <div>
+            <h4>Product</h4>
+            <ul class="footer-links">
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#agents">The Agents</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#demo">Try Demo</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Reports</h4>
+            <ul class="footer-links">
+                <li><a href="#">Market Research</a></li>
+                <li><a href="#">Competitive Intel</a></li>
+                <li><a href="#">Customer Insights</a></li>
+                <li><a href="#">Business Verdict</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Tech Stack</h4>
+            <ul class="footer-links">
+                <li><a href="#">CrewAI</a></li>
+                <li><a href="#">Ollama (Qwen2.5)</a></li>
+                <li><a href="#">FastAPI</a></li>
+                <li><a href="#">Tavily Search</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        Built with passion for founders who move fast and think deep.
+    </div>
+</footer>
+
+<div class="confetti-container" id="confettiContainer"></div>
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+<script>
+
+    // ===== CONFIG =====
+    const API_BASE = 'https://transgressive-archimedes-vixenly.ngrok-free.dev';
+
+    // ===== NAVBAR SCROLL =====
+    window.addEventListener('scroll', () => {
+        const navbar = document.getElementById('navbar');
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+        document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 500);
+    });
+
+    // ===== CHAR COUNT =====
+    const textarea = document.getElementById('productIdea');
+    const charCount = document.getElementById('charCount');
+    textarea.addEventListener('input', () => {
+        charCount.textContent = textarea.value.length;
+    });
+
+    // ===== SCROLL TO DEMO =====
+    function scrollToDemo() {
+        document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => textarea.focus(), 800);
+    }
+
+    // ===== INTERSECTION OBSERVER FOR ANIMATIONS =====
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-up').forEach(el => {
+        el.style.animationPlayState = 'paused';
+        observer.observe(el);
+    });
+
+    // ===== CONFETTI =====
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        const colors = ['#0D9488', '#F97316', '#E11D48', '#D97706', '#4F46E5', '#14B8A6'];
+        for (let i = 0; i < 50; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + 'vw';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = Math.random() * 2 + 's';
+            piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            piece.style.width = (6 + Math.random() * 8) + 'px';
+            piece.style.height = (6 + Math.random() * 8) + 'px';
+            container.appendChild(piece);
+            setTimeout(() => piece.remove(), 5000);
+        }
+    }
+
+    // ===== GENERATE REPORT =====
+    let reportData = null;
+
+    async function generateReport() {
+        const idea = textarea.value.trim();
+        if (!idea || idea.length < 5) {
+            showError('Please enter a product idea with at least 5 characters.');
+            return;
+        }
+
+        const btn = document.getElementById('generateBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const resultArea = document.getElementById('resultArea');
+
+        btn.disabled = true;
+        btn.classList.add('loading');
+        errorMsg.classList.remove('show');
+        resultArea.classList.remove('show');
+
+        // Animate progress steps
+        animateProgress();
+
+        try {
+            const response = await fetch(API_BASE + '/generate-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_idea: idea, verbose: false })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.detail || 'Failed to generate report. Server returned ' + response.status);
+            }
+
+            reportData = await response.json();
+            showResult('final');
+            resultArea.classList.add('show');
+            launchConfetti();
+            markAllDone();
+
+        } catch (err) {
+            showError(err.message || 'Something went wrong. Please check that the backend server is running and the ngrok URL is correct.');
+        } finally {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+        }
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 8000);
+    }
+
+    // ===== PROGRESS ANIMATION =====
+    function animateProgress() {
+        const steps = document.querySelectorAll('.progress-step');
+        steps.forEach((step, i) => {
+            step.classList.remove('active', 'done');
+            setTimeout(() => {
+                step.classList.add('active');
+                setTimeout(() => step.classList.remove('active'), 2000);
+                setTimeout(() => step.classList.add('done'), 2000);
+            }, i * 2000);
+        });
+    }
+
+    function markAllDone() {
+        document.querySelectorAll('.progress-step').forEach(s => {
+            s.classList.remove('active');
+            s.classList.add('done');
+        });
+    }
+
+    // ===== TAB SWITCHING =====
+    const tabMap = {
+        'final': 'final_report',
+        'market': 'market_research',
+        'competitive': 'competitive_intelligence',
+        'customer': 'customer_insights',
+        'strategy': 'product_strategy',
+        'business': 'business_analysis'
+    };
+
+    document.getElementById('resultTabs').addEventListener('click', (e) => {
+        const tab = e.target.closest('.result-tab');
+        if (!tab) return;
+
+        document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const key = tab.dataset.tab;
+        showResult(key);
+    });
+
+    function showResult(key) {
+        const content = document.getElementById('resultContent');
+        if (!reportData) return;
+
+        const dataKey = tabMap[key];
+        let raw = reportData[dataKey] || '';
+
+        // Convert markdown to HTML
+        if (typeof marked !== 'undefined' && raw) {
+            const html = marked.parse(raw);
+            content.innerHTML = html;
+            // Highlight code blocks
+            content.querySelectorAll('pre code').forEach((block) => {
+                if (typeof hljs !== 'undefined') hljs.highlightElement(block);
+            });
+        } else {
+            content.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">No content available for this section.</p>';
+        }
+    }
+
+    // ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // ===== HEALTH CHECK ON LOAD =====
+    (async function checkHealth() {
+        try {
+            const resp = await fetch(API_BASE + '/', { method: 'GET', mode: 'cors' });
+            if (resp.ok) {
+                console.log('Backend is reachable');
+            }
+        } catch (e) {
+            console.warn('Backend may not be reachable:', e);
+        }
+    })();
+</script>
+
+</body>
+</html>
